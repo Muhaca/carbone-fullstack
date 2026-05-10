@@ -1,0 +1,44 @@
+# --- Dependencies ---
+**/node_modules/
+**/package-lock.json
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# --- Frontend (Vite/React) ---
+frontend/dist/
+frontend/dist-ssr/
+frontend/*.local
+frontend/package-lock.json
+
+# --- Backend (Node.js) ---
+# Jangan upload file template hasil testing atau yang diupload user
+backend/templates/*
+# Kecuali kamu ingin menyimpan template bawaan (contoh: surat_dasar.docx)
+!backend/templates/.gitkeep
+
+# Jika ada file .env untuk database/token API
+.env
+backend/.env
+frontend/.env
+
+# --- Docker ---
+.docker/
+# Jika ingin mengabaikan data volume docker lokal
+docker-data/
+
+# --- macOS Specific ---
+.DS_Store
+.AppleDouble
+.LSOverride
+**/Icon?
+._*
+
+# --- Editors/IDE ---
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

@@ -1,0 +1,21 @@
+version: '3.8'
+services:
+  api:
+    build: ./backend
+    container_name: carbone-api
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+    environment:
+      - DEBIAN_FRONTEND=noninteractive
+      - HOME=/tmp
+      - PATH=/usr/lib/libreoffice/program:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      # Eksplisit set path untuk Carbone
+      - LIBREOFFICE_PATH=/usr/lib/libreoffice/program
+    user: root
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./backend/templates:/app/templates
+    restart: always
