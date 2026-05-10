@@ -1,38 +1,69 @@
-import { create } from 'zustand';
+import { create } from "zustand";
 
-interface TemplateState {
-    templateFile: string | null;
+export interface TemplateStore {
+    // ── Step 1: Template ──────────────────────────────────────────────────────
+    templateFile: File | null;
     templateId: string | null;
-    detectedTags: string[];
-    placeholders: Record<string, any>;
-    previewUrl: string | null;
+    uploadingTemplate: boolean;
 
-    setTemplateData: (id: string, tags: string[]) => void;
-    updatePlaceholder: (key: string, value: any) => void;
-    setPreviewUrl: (url: string | null) => void;
+    // ── Step 2: JSON & Generate ───────────────────────────────────────────────
+    jsonFile: File | null;
+    generating: boolean;
+
+    // ── Output ────────────────────────────────────────────────────────────────
+    pdfUrl: string | null;
+    pdfBlob: Blob | null;
+
+    // ── Error ─────────────────────────────────────────────────────────────────
+    error: string | null;
+
+    // ── Actions ───────────────────────────────────────────────────────────────
+    setTemplateFile: (file: File | null) => void;
+    setTemplateId: (id: string | null) => void;
+    setUploadingTemplate: (val: boolean) => void;
+    setJsonFile: (file: File | null) => void;
+    setGenerating: (val: boolean) => void;
+    setPdf: (blob: Blob | null) => void;
+    setError: (msg: string | null) => void;
+    reset: () => void;
 }
 
-export const useTemplateStore = create<TemplateState>((set) => ({
+const initialState = {
     templateFile: null,
     templateId: null,
-    detectedTags: [],
-    placeholders: {},
-    previewUrl: null,
+    uploadingTemplate: false,
+    jsonFile: null,
+    generating: false,
+    pdfUrl: null,
+    pdfBlob: null,
+    error: null,
+};
 
-    setTemplateData: (id, tags) => {
-        const initialData: Record<string, any> = {};
-        tags.forEach((tag) => (initialData[tag] = ""));
+export const useTemplateStore = create<TemplateStore>((set, get) => ({
+    ...initialState,
+
+    setTemplateFile: (file) => set({ templateFile: file }),
+    setTemplateId: (id) => set({ templateId: id }),
+    setUploadingTemplate: (val) => set({ uploadingTemplate: val }),
+    setJsonFile: (file) => set({ jsonFile: file }),
+    setGenerating: (val) => set({ generating: val }),
+
+    setPdf: (blob) => {
+        // Revoke URL lama agar tidak memory leak
+        const prev = get().pdfUrl;
+        if (prev) URL.revokeObjectURL(prev);
+
         set({
-            templateId: id,
-            detectedTags: tags,
-            placeholders: initialData
+            pdfBlob: blob,
+            pdfUrl: blob ? URL.createObjectURL(blob) : null,
         });
     },
 
-    updatePlaceholder: (key, value) =>
-        set((state) => ({
-            placeholders: { ...state.placeholders, [key]: value },
-        })),
+    setError: (msg) => set({ error: msg }),
 
-    setPreviewUrl: (url) => set({ previewUrl: url }),
+    reset: () => {
+        const prev = get().pdfUrl;
+        if (prev) URL.revokeObjectURL(prev);
+        set(initialState);
+    },
 }));
