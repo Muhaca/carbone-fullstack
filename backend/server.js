@@ -1,141 +1,156 @@
-process.env.PATH += ':/usr/lib/libreoffice/program';
-
 const express = require('express');
 const carbone = require('carbone');
-const path = require('path');
-
-const cors = require('cors');
 const multer = require('multer');
+const path = require('path');
 const fs = require('fs');
-const AdmZip = require('adm-zip');
-
-// ✅ Carbone v3: gunakan LIBREOFFICE_PATH env atau path ke binary langsung
-// Cek binary yang tersedia dulu
-const libreofficePaths = [
-    '/usr/bin/libreoffice',
-    '/usr/bin/soffice',
-    '/usr/lib/libreoffice/program/soffice',
-    '/usr/local/bin/soffice'
-];
-
-let libreofficebin = null;
-for (const p of libreofficePaths) {
-    if (fs.existsSync(p)) {
-        libreofficebin = p;
-        console.log(`✅ LibreOffice ditemukan di: ${p}`);
-        break;
-    }
-}
-
-if (!libreofficebin) {
-    console.error('❌ LibreOffice tidak ditemukan! PDF conversion tidak akan berjalan.');
-}
-
-// Set Carbone dengan benar untuk v3
-carbone.set({
-    tempPath: '/tmp',
-    // factories untuk v3 adalah jumlah worker, bukan path!
-    // Gunakan env variable untuk binary path
-});
-
-// Set env agar carbone/LibreOffice bisa jalan
-process.env.HOME = '/tmp';
-if (libreofficebin) {
-    // Carbone v3 membaca LIBREOFFICE_PATH atau mencari di PATH
-    process.env.LIBREOFFICE_PATH = path.dirname(libreofficebin);
-}
+const cors = require('cors');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// 1. Konfigurasi Penyimpanan Upload
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        const uploadPath = path.join(__dirname, 'templates');
-        if (!fs.existsSync(uploadPath)) fs.mkdirSync(uploadPath);
-        cb(null, uploadPath);
-    },
+// ─── Direktori template permanen ────────────────────────────────────────────
+const TEMPLATES_DIR = path.join(__dirname, 'templates');
+if (!fs.existsSync(TEMPLATES_DIR)) fs.mkdirSync(TEMPLATES_DIR, { recursive: true });
+
+// ─── Deteksi LibreOffice binary ──────────────────────────────────────────────
+const libreofficePaths = [
+    '/usr/bin/libreoffice',
+    '/usr/bin/soffice',
+    '/usr/lib/libreoffice/program/soffice',
+    '/usr/local/bin/soffice',
+];
+let libreofficeBin = null;
+for (const p of libreofficePaths) {
+    if (fs.existsSync(p)) { libreofficeBin = p; break; }
+}
+if (libreofficeBin) {
+    process.env.LIBREOFFICE_PATH = path.dirname(libreofficeBin);
+    console.log(`✅ LibreOffice: ${libreofficeBin}`);
+} else {
+    console.error('❌ LibreOffice tidak ditemukan!');
+}
+process.env.HOME = '/tmp';
+
+carbone.set({ tempPath: '/tmp' });
+
+// ─── Multer: upload template (.docx) ────────────────────────────────────────
+const templateStorage = multer.diskStorage({
+    destination: (req, file, cb) => cb(null, TEMPLATES_DIR),
     filename: (req, file, cb) => {
-        // Simpan dengan nama unik agar tidak tertimpa
-        cb(null, Date.now() + '-' + file.originalname);
-    }
+        // Pakai nama asli + timestamp agar tidak tabrakan
+        const ext = path.extname(file.originalname);
+        const base = path.basename(file.originalname, ext);
+        const filename = `${base}_${Date.now()}${ext}`;
+        cb(null, filename);
+    },
 });
-
-const upload = multer({
-    storage,
+const uploadTemplate = multer({
+    storage: templateStorage,
     fileFilter: (req, file, cb) => {
-        // Hanya izinkan format office
-        if (file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
-            cb(null, true);
-        } else {
-            cb(new Error('Hanya file .docx yang diperbolehkan!'));
+        const allowed = '.docx';
+        if (path.extname(file.originalname).toLowerCase() !== allowed) {
+            return cb(new Error('Hanya file .docx yang diizinkan'));
         }
-    }
+        cb(null, true);
+    },
 });
 
-// 2. Endpoint: Upload Template
-app.post('/upload-template', upload.single('template'), (req, res) => {
-    if (!req.file) return res.status(400).send('Gagal upload.');
+// ─── Multer: upload JSON (memory, tidak perlu disimpan) ──────────────────────
+const uploadJson = multer({
+    storage: multer.memoryStorage(),
+    fileFilter: (req, file, cb) => {
+        if (path.extname(file.originalname).toLowerCase() !== '.json') {
+            return cb(new Error('Hanya file .json yang diizinkan'));
+        }
+        cb(null, true);
+    },
+});
 
-    const filePath = req.file.path;
-    const zip = new AdmZip(filePath);
-    const contentXml = zip.readAsText("word/document.xml");
+// ────────────────────────────────────────────────────────────────────────────
+// POST /upload-template
+// Body  : multipart/form-data  →  field "template" (.docx)
+// Return: { templateId, originalName, uploadedAt }
+// ────────────────────────────────────────────────────────────────────────────
+app.post('/upload-template', uploadTemplate.single('template'), (req, res) => {
+    if (!req.file) return res.status(400).json({ error: 'File template tidak ditemukan' });
 
-    // Regex untuk mencari pola {d.apapun}
-    const regex = /\{d\.([\w.]+)\}/g;
-    const tags = new Set();
-    let match;
-
-    while ((match = regex.exec(contentXml)) !== null) {
-        tags.add(match[1]); // Ambil nama variabelnya saja
-    }
-
+    console.log(`📄 Template tersimpan: ${req.file.filename}`);
     res.json({
         templateId: req.file.filename,
-        detectedTags: Array.from(tags) // Contoh: ["nama", "alamat", "tanggal"]
+        originalName: req.file.originalname,
+        uploadedAt: new Date().toISOString(),
     });
 });
 
-// ✅ Endpoint generate-preview yang benar
-app.post('/generate-preview', (req, res) => {
-    const { templateId, data } = req.body;
-    const templatePath = path.join(__dirname, 'templates', templateId);
+// ────────────────────────────────────────────────────────────────────────────
+// GET /templates
+// Return: daftar template yang tersimpan di server
+// ────────────────────────────────────────────────────────────────────────────
+app.get('/templates', (req, res) => {
+    const files = fs.readdirSync(TEMPLATES_DIR).filter(f => f.endsWith('.docx'));
+    const list = files.map(f => {
+        const stat = fs.statSync(path.join(TEMPLATES_DIR, f));
+        return { templateId: f, size: stat.size, uploadedAt: stat.mtime };
+    });
+    res.json(list);
+});
 
-    // Validasi template ada
-    if (!fs.existsSync(templatePath)) {
-        return res.status(404).send(`Template '${templateId}' tidak ditemukan`);
+// ────────────────────────────────────────────────────────────────────────────
+// POST /generate-pdf
+// Body  : multipart/form-data
+//         - field "json"       : file .json berisi data
+//         - field "templateId" : nama file template (dari /upload-template)
+// Return: binary PDF
+// ────────────────────────────────────────────────────────────────────────────
+app.post('/generate-pdf', uploadJson.single('json'), (req, res) => {
+    // ── Validasi input ───────────────────────────────────────────────────────
+    const { templateId } = req.body;
+    if (!templateId) return res.status(400).json({ error: 'templateId wajib diisi' });
+    if (!req.file) return res.status(400).json({ error: 'File .json tidak ditemukan' });
+
+    // ── Parse JSON ───────────────────────────────────────────────────────────
+    let data;
+    try {
+        data = JSON.parse(req.file.buffer.toString('utf-8'));
+    } catch (e) {
+        return res.status(400).json({ error: 'Format JSON tidak valid: ' + e.message });
     }
 
-    const options = {
-        convertTo: 'pdf',
-        timeout: 60000 // Naikkan timeout, LibreOffice butuh waktu cold start
-    };
+    // ── Cek template ada ─────────────────────────────────────────────────────
+    const templatePath = path.join(TEMPLATES_DIR, templateId);
+    if (!fs.existsSync(templatePath)) {
+        return res.status(404).json({ error: `Template '${templateId}' tidak ditemukan` });
+    }
 
-    // ✅ PASTIKAN options dipass sebagai argumen ke-3!
+    // ── Render ───────────────────────────────────────────────────────────────
+    const options = { convertTo: 'pdf', timeout: 60000 };
+
+    console.log(`🔄 Render: template=${templateId} | data keys=${Object.keys(data).join(', ')}`);
+
     carbone.render(templatePath, data, options, (err, result) => {
         if (err) {
-            console.error("--- CARBONE ERROR ---");
-            console.error("Message:", err.message);
-            console.error("Stack:", err.stack);
-            console.error("LibreOffice bin:", libreofficebin);
-            console.error("HOME:", process.env.HOME);
-            console.error("---------------------");
+            console.error('❌ Carbone error:', err.message);
             return res.status(500).json({
                 error: err.message,
-                libreoffice: libreofficebin,
-                hint: !libreofficebin ? 'LibreOffice tidak terinstall dengan benar' : 'Cek log untuk detail'
+                hint: 'Pastikan LibreOffice terinstall dan template valid',
             });
         }
 
-        console.log(`✅ PDF berhasil digenerate, size: ${result.length} bytes`);
-        res.contentType("application/pdf");
+        console.log(`✅ PDF berhasil: ${result.length} bytes`);
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `inline; filename="preview.pdf"`);
         res.send(result);
     });
 });
 
-
-const PORT = 3001;
-app.listen(PORT, () => {
-    console.log(`Backend siap di http://localhost:${PORT}`);
+// ─── Error handler multer ────────────────────────────────────────────────────
+app.use((err, req, res, next) => {
+    if (err instanceof multer.MulterError || err.message) {
+        return res.status(400).json({ error: err.message });
+    }
+    next(err);
 });
+
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, () => console.log(`🚀 Server berjalan di port ${PORT}`));
