@@ -1,4 +1,4 @@
-import { CheckIcon } from "./icons/Icons";
+import { CheckIcon } from "./CustomIcons";
 
 // ─── Card ─────────────────────────────────────────────────────────────────────
 interface CardProps {
