@@ -139,7 +139,7 @@ app.post('/generate-pdf', uploadJson.single('json'), (req, res) => {
 
         console.log(`✅ PDF berhasil: ${result.length} bytes`);
         res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', `inline; filename="preview.pdf"`);
+        res.setHeader('Content-Disposition', `inline; filename="${templateId}"`);
         res.send(result);
     });
 });

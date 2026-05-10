@@ -1,11 +1,10 @@
 import axios from "axios";
 import { useTemplateStore } from "../store/useTemplateStore";
-import { DownloadIcon, PdfIcon, RefreshIcon, Spinner, UploadIcon, XIcon } from "./icons/Icons";
+import { DownloadIcon, PdfIcon, RefreshIcon, Spinner, UploadIcon, XIcon } from "./CustomIcons";
 import { Card } from "./Card";
 import { JsonPreview } from "./JsonPreview";
 import { DropZone } from "./DropZone";
-
-const API_BASE = import.meta.env.VITE_API_BASE ?? "http://localhost:3001";
+import { API_BASE } from "../api/client";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface UploadTemplateResponse {
@@ -104,7 +103,7 @@ export default function TemplateGenerator() {
 
                 {/* Header */}
                 <div className="mb-8">
-                    <h1 className="text-2xl font-bold text-gray-900">Carbone Template Generator</h1>
+                    <h1 className="text-2xl font-bold text-gray-900">Proof of Concept Sicetak Template</h1>
                     <p className="text-sm text-gray-500 mt-1">Upload template .docx dan data .json untuk generate PDF</p>
                 </div>
 

@@ -1,5 +1,5 @@
 import { useRef, useCallback, useState, type DragEvent, type ChangeEvent } from "react";
-import { CheckIcon, UploadIcon } from "./icons/Icons";
+import { CheckIcon, UploadIcon } from "./CustomIcons";
 
 // ─── DropZone ─────────────────────────────────────────────────────────────────
 interface DropZoneProps {
