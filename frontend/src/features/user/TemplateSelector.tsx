@@ -46,7 +46,7 @@ export function TemplateSelector({
                         onClick={() => onSelect(t.templateId)}
                         className={`
               flex items-center gap-3 px-4 py-3 rounded-xl border text-left
-              transition-all duration-150 w-full
+              transition-all duration-150 w-full cursor-pointer
               ${isSelected
                                 ? "border-indigo-400 bg-indigo-50 ring-1 ring-indigo-300"
                                 : "border-gray-200 bg-white hover:border-indigo-200 hover:bg-indigo-50/40"}

@@ -40,7 +40,7 @@ export function ModeSelector({
                         onClick={() => onChange(opt.value)}
                         className={`
               flex flex-col items-start gap-2 px-4 py-3.5 rounded-xl border text-left
-              transition-all duration-150
+              transition-all duration-150 cursor-pointer
               ${isActive
                                 ? opt.value === "value_only"
                                     ? "border-violet-400 bg-violet-50 ring-1 ring-violet-300"

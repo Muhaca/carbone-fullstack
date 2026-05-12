@@ -69,7 +69,7 @@ export default function AdminPage() {
 
     return (
         <div className="min-h-screen bg-gray-100 px-4 py-8">
-            <div className="max-w-2xl mx-auto">
+            <div className="max-w-7xl mx-auto">
 
                 {/* Header */}
                 <div className="mb-8">
@@ -87,10 +87,10 @@ export default function AdminPage() {
                 {/* Error */}
                 {error && <ErrorBanner message={error} onClose={() => setError(null)} />}
 
-                <div className="flex flex-col gap-6">
+                <div className="flex w-full flex-col gap-6 items-center">
 
                     {/* Upload card */}
-                    <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+                    <div className="w-full bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
                         <div className="flex items-center gap-2 px-4 py-3.5 border-b border-gray-100">
                             {Icons.upload}
                             <span className="text-sm font-semibold text-gray-900">Upload Template Baru</span>

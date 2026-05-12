@@ -96,7 +96,7 @@ export default function UserPage() {
 
     return (
         <div className="min-h-screen bg-gray-100 px-4 py-8 w-full">
-            <div className="max-w-5xl mx-auto">
+            <div className="max-w-7xl mx-auto">
 
                 {/* Header */}
                 <div className="mb-8">
@@ -152,15 +152,11 @@ export default function UserPage() {
                         <button
                             onClick={handleGenerate}
                             disabled={!isReady || generating}
-                            className={`
-                flex items-center justify-center gap-2 w-full py-3 rounded-xl
-                text-sm font-semibold text-white transition-all duration-200
-                ${!isReady || generating
-                                    ? "bg-gray-300 cursor-not-allowed"
-                                    : mode === "value_only"
-                                        ? "bg-violet-600 hover:bg-violet-700 active:scale-[.98]"
-                                        : "bg-indigo-500 hover:bg-indigo-600 active:scale-[.98]"}
-              `}
+                            className={`flex items-center justify-center gap-2 w-full py-3 rounded-xl text-sm font-semibold text-white transition-all duration-200 cursor-pointer ${!isReady || generating
+                                ? "bg-gray-300 cursor-not-allowed"
+                                : mode === "value_only"
+                                    ? "bg-violet-600 hover:bg-violet-700 active:scale-[.98]"
+                                    : "bg-indigo-500 hover:bg-indigo-600 active:scale-[.98]"}`}
                         >
                             {generating ? <Spinner /> : Icons.pdf}
                             {labelButtonGenerate}
