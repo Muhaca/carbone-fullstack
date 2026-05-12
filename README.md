@@ -29,15 +29,21 @@ POC (Proof of Concept) untuk generate dokumen PDF dari template `.docx` mengguna
 ├── frontend/
 │   ├── src/
 │   │   ├── api/
-│   │   │   └── client.ts   # Komponen utama
+│   │   │   └── client.ts   # Ip Adreess server backend
 │   │   ├── components/
-│   │   │   └── TemplateGenerator.tsx   # Komponen utama
-│   │   │   └── Card.tsx   # Komponen utama
-│   │   │   └── CustomIcons.tsx   # Komponen utama
 │   │   │   └── DropZone.tsx   # Komponen utama
-│   │   │   └── JsonPreview.tsx   # Komponen utama
-│   │   └── stores/
-│   │       └── useTemplateStore.ts     # Zustand store
+│   │   │   └── ErrorBanner.tsx   # Komponen Pesan Error
+│   │   │   └── Icons.tsx   # Komponen Icons
+│   │   │   └── PdfViewer.tsx   # Komponen PDF
+│   │   │   └── Spinner.tsx   # Komponen loading
+│   │   │   └── TabButton.tsx   # Komponen Tab
+│   │   ├── pages/
+│   │   │   └── AddminPages.ts     # Halaman Admin
+│   │   │   └── UserPage.tsx     # Halaman User
+│   │   ├── stores/
+│   │   │   └── useTemplateStore.ts     # Zustand store
+│   │   ├── utils/
+│   │   │   └── formatBytes.ts  # Utils
 │   ├── .env
 │   └── package.json
 └── docker-compose.yml

@@ -14,7 +14,7 @@ export function TemplateList({
     onRefresh: () => void;
 }) {
     return (
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+        <div className="w-full bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3.5 border-b border-gray-100">
                 <div className="flex items-center gap-2">

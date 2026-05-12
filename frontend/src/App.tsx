@@ -1,6 +1,7 @@
 import { useState } from "react";
 import AdminPage from "./page/AdminPage";
 import UserPage from "./page/UserPage";
+import { TabButton } from "./components/TabButton";
 
 type Tab = "user" | "admin";
 
@@ -21,7 +22,7 @@ export default function App() {
                 <polyline points="14 2 14 8 20 8" />
               </svg>
             </div>
-            <span className="font-bold text-gray-900 text-sm">Carbone Generator</span>
+            <span className="font-bold text-gray-900 text-sm">Proof of Concept Sicetak Template Document</span>
           </div>
 
           {/* Tab switcher */}
@@ -40,29 +41,5 @@ export default function App() {
       {/* Page content */}
       {tab === "user" ? <UserPage /> : <AdminPage />}
     </div>
-  );
-}
-
-// ─── Tab Button ───────────────────────────────────────────────────────────────
-function TabButton({
-  active, onClick, color, children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  color: "indigo" | "emerald";
-  children: React.ReactNode;
-}) {
-  const activeClass = color === "emerald"
-    ? "bg-white text-emerald-600 shadow-sm"
-    : "bg-white text-indigo-600 shadow-sm";
-
-  return (
-    <button
-      onClick={onClick}
-      className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-all duration-200
-        ${active ? activeClass : "text-gray-500 hover:text-gray-700"}`}
-    >
-      {children}
-    </button>
   );
 }
